@@ -49,6 +49,10 @@ To help you figure out the wiring, here is a picture of the final wiring result:
 ![Wiring](/img/wiring.jpg)
 
 I cannot include a Fritzing schema here becaus it's impossible to find a schematic where the back header is visible. But it's pretty obvious from the picture above.
+On the picture the collor of the cables correspond to:
+* Read: VCC
+* Orange: Output
+* Yellow: Ground
 
 ## Installation of the RPi base system and the PiTFT
 ### Install raspbian
