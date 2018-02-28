@@ -27,9 +27,28 @@ To realize this project, the following components are required:
 * A PIR sensor module from Adafruit or any other vendor ([Adafruit link](https://www.adafruit.com/product/189))
 * A 3D printer or access to one
 * Some Screws:
-    * 4x M4x25mm max with conic head to close the enclosure
+    * 4x M4x10mm (25mm max) with conic head to close the enclosure
     * 4x M3x5mm to tighten the PiTFT to the enclosure
     * 2x M2x5mm to tighten the PIR to the enclosure
+
+## Wiring
+The only thing to wire manually is the PIR sensor to the Raspberry Pi.
+One problem to face is that the PiTFT hat connects on the Raspberry Pi taking all the GPIO pins.
+The solution to that problem is to use the second male connector at the back of the PiTFT.
+
+For that, I soldered a piece of ribbon cable to which I soldered individual cutable headers but feel free to use any other mean of wiring.
+You can also solder the three cables to the PiTFT header and the RPI header. I't more definitive
+but, less cumbersome than creating a custom cable like I did. If I make another one, I will take the
+soldering to header approach !
+
+To give you an idea, the PIR has three pins, Ground, VCC (+5V) and output.
+Ground goes to one of the Ground pins of the Pi, VCC to a +5V pin and Output goes
+to the GPIO4 of the Raspberry Pi.
+
+To help you figure out the wiring, here is a picture of the final wiring result:
+![Wiring](/img/wiring.jpg)
+
+I cannot include a Fritzing schema here becaus it's impossible to find a schematic where the back header is visible. But it's pretty obvious from the picture above.
 
 ## Installation of the RPi base system and the PiTFT
 ### Install raspbian
@@ -244,7 +263,7 @@ To do so, edit the file with nano and change it's content:
 #> sudo nano /etc/init.d/pirscreen.sh
 ```
 
-## Printing the case
+## Printing the case and assembling
 The case that can be seen in the images is available in the `src/enclosure` folder.
 
 The two `.stl` files are provided ready to print.
@@ -257,3 +276,26 @@ The file starts with all parameters and two modules, one for each part of the bo
 * back_part  : The module to render the back part of the box.
 
 Before exporting the STL file, don't forget to leave only the part to export uncommented at the end of the file and do a render (F6).
+
+### Assembling
+To assemble the electronics and the 3D printed box, some extra screws are needed:
+    * 4x M4x10mm (25mm max) with conic head
+    * 4x M3x5mm 
+    * 2x M2x5mm
+
+To assemble:
+1. Separate the PiTFT board from the Raspberry Pi.
+1. Screw the PiTFT to the front of the case using the four M3 screws.
+1. Screw the PIR to the front of the case using the M2 screws.
+1. Plug the MicroUSB power to the PI
+1. Reassemble the Raspberry Pi on top of the PiTFT board
+1. Power up to check that everything still works.
+1. Pass the power cable in the channel at the bottom of the back of the case.
+1. Assemble the back and the front using the four M4 screws.
+
+Here are pictures of the final assembly:
+![Front view](/img/final-assembly-1.jpg)
+![Front view](/img/final-assembly-2.jpg)
+
+
+Note that on the pictures, I used special metal bolts fused into the plastic. I removed these from the 3D model because they don't bring extra value and are quite hard to find. So don't panic if your model does not have these. In the revised version, the screws go directly into the plastic !
