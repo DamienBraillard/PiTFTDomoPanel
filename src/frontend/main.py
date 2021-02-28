@@ -1,12 +1,16 @@
 import pygame
 import locale
-import pygame_gui
+import logging
 from typing import Type, Union
 from screen import Screen
 from main_screen import MainScreen
 from communicator import Communicator
 from eedomus_box import EedomusBoxInterface
 
+# Initialize logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Initialize PyGame
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -24,8 +28,7 @@ screen: Union[Type[Screen], None] = MainScreen(surface=window_surface, communica
 
 screen.activate(None)
 
-# print(pygame.font.get_fonts())
-
+# PyGame main loop
 isRunning = True
 while isRunning:
     time_delta = clock.tick(60) / 1000.0
