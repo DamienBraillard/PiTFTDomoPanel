@@ -1,7 +1,7 @@
 import config
 from gpiozero import Device, DigitalInputDevice, DigitalOutputDevice
 from gpiozero.pins.mock import MockFactory
-from typing import Union
+from typing import Optional
 import subprocess
 import logging
 
@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 class TftManager:
     def __init__(self):
         if config.MOCK_PINS:
-            LOGGER.warning("Using mocked GPIO pins");
+            LOGGER.warning("Using mocked GPIO pins")
             Device.pin_factory = MockFactory()
 
         LOGGER.debug(f"Setting up PIR sensor on GPIO {config.PIN_PIR}")
@@ -23,11 +23,11 @@ class TftManager:
 
         LOGGER.debug(f"Using X Display '{config.SCREEN_DISPLAY}' and {config.SCREEN_TIMEOUT}s off timeout for screen.")
 
-        self.__is_on: Union[bool, None] = None
+        self.__is_on: Optional[bool] = None
         self.update()
 
     @property
-    def is_on(self) -> Union[bool, None]:
+    def is_on(self) -> Optional[bool]:
         """ Returns True if the TFT screen is currently ON; otherwise, False """
         return self.__is_on
 
@@ -40,18 +40,22 @@ class TftManager:
 
         try:
             # determine whether the TFT must be ON/OFF
+            new_is_on = True
             if config.MOCK_PINS:
-                self.__is_on = True
+                new_is_on = True
             else:
                 pir_inactive_time = 0 if self.__pir.inactive_time is None else self.__pir.inactive_time
                 new_is_on = pir_inactive_time < config.SCREEN_TIMEOUT
-                has_changed = new_is_on != self.__is_on
-                self.__is_on = new_is_on
+
+            # Update the members
+            has_changed = new_is_on != self.__is_on
+            self.__is_on = new_is_on
 
             # Toggle the screen ON or OFF if the state changed
             if has_changed:
                 self.set_screen(self.is_on)
 
+            # Done !
             return has_changed
         except Exception as err:
             logging.error(f"Failed to set the TFT on/off: {err}")
