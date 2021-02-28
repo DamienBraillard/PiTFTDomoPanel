@@ -1,7 +1,7 @@
 import pygame
 import locale
 import logging
-from typing import Type, Union
+from typing import Optional
 import config
 from screen import Screen
 from main_screen import MainScreen
@@ -9,62 +9,77 @@ from communicator import Communicator
 from eedomus_box import EedomusBoxInterface
 from tft_manager import TftManager
 
-# Initialize logging
-logging.basicConfig(level=logging.DEBUG)
 
-# Initialize PyGame
-pygame.init()
+class Frontend:
+    def __init__(self):
+        # Initialize PyGame
+        pygame.init()
+        self.__clock = pygame.time.Clock()
 
-clock = pygame.time.Clock()
+        pygame.display.set_caption('Domo panel')
+        self.__window_surface: pygame.Surface = pygame.display.set_mode((320, 240))
 
-pygame.display.set_caption('Domo panel')
-window_surface: pygame.Surface = pygame.display.set_mode((320, 240))
+        # Configure the locale
+        if config.LOCALE != "":
+            locale.setlocale(locale.LC_ALL, config.LOCALE)
 
-# Initialize fonts
-if config.LOCALE != "":
-    locale.setlocale(locale.LC_ALL, config.LOCALE)
+        # Configure the logging
+        self.__configure_logging()
 
-# Setup the screen management & home automation box communication
-tft_manager = TftManager()
-communicator = Communicator(EedomusBoxInterface())
-communicator.refresh()
+        # Setup the screen management & home automation box communication
+        self.__tft_manager = TftManager()
+        self.__communicator = Communicator(EedomusBoxInterface())
+        self.__communicator.refresh()
 
-# Setup the initial screen
-screen: Union[Type[Screen], None] = MainScreen(surface=window_surface, communicator=communicator)
-screen.activate(None)
+        # Setup the initial screen
+        self.__screen: Optional[Screen] = MainScreen(surface=self.__window_surface,
+                                                     communicator=self.__communicator)
+        self.__screen.activate(None)
 
-# PyGame main loop
-isRunning = True
-while isRunning:
-    time_delta = clock.tick(60) / 1000.0
+    @staticmethod
+    def __configure_logging():
+        """ Initialize the logging infrastructure """
+        logging.basicConfig(level=logging.DEBUG)
 
-    # Enable/Disable the screen
-    if tft_manager.update():
-        # Start the communicator when the screen goes ON, and stop it when the screen goes OFF
-        if tft_manager.is_on:
-            communicator.start()
-        else:
-            communicator.stop()
+    def run(self):
+        """ Executes the PyGame main loop """
 
-    # Handles events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            isRunning = False
-            break
-        elif screen is not None:
-            screen.handle_event(event)
+        is_running = True
+        while is_running:
+            time_delta = self.__clock.tick(60) / 1000.0
 
-    # Handles screen
-    if screen is not None:
-        next_screen = screen.run(time_delta)
-        if next_screen is not None:
-            screen.deactivate()
-            next_screen.activate(screen)
-            screen = next_screen
+            # Enable/Disable the screen
+            if self.__tft_manager.update():
+                # Start the communicator when the screen goes ON, and stop it when the screen goes OFF
+                if self.__tft_manager.is_on:
+                    self.__communicator.start()
+                else:
+                    self.__communicator.stop()
 
-    # Update the PyGame display
-    pygame.display.update()
+            # Handles events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    is_running = False
+                    break
+                elif self.__screen is not None:
+                    self.__screen.handle_event(event)
 
-# Cleanup on exit
-screen.deactivate()
-communicator.stop()
+            # Handles screen
+            if self.__screen is not None:
+                next_screen = self.__screen.run(time_delta)
+                if next_screen is not None:
+                    self.__screen.deactivate()
+                    next_screen.activate(self.__screen)
+                    self.__screen = next_screen
+
+            # Update the PyGame display
+            pygame.display.update()
+
+        # Cleanup on exit
+        self.__screen.deactivate()
+        self.__communicator.stop()
+
+
+if __name__ == "__main__":
+    frontend = Frontend()
+    frontend.run()
