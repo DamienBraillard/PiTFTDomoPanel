@@ -2,6 +2,7 @@ import pygame
 import locale
 import logging
 from typing import Type, Union
+import config
 from screen import Screen
 from main_screen import MainScreen
 from communicator import Communicator
@@ -16,11 +17,12 @@ pygame.init()
 
 clock = pygame.time.Clock()
 
-pygame.display.set_caption('Quick Start')
+pygame.display.set_caption('Domo panel')
 window_surface: pygame.Surface = pygame.display.set_mode((320, 240))
 
 # Initialize fonts
-locale.setlocale(locale.LC_ALL, 'fr_CH.utf8')
+if config.LOCALE != "":
+    locale.setlocale(locale.LC_ALL, config.LOCALE)
 
 # Setup the screen management & home automation box communication
 tft_manager = TftManager()

@@ -1,6 +1,7 @@
 from communicator import BoxInterface, BoxStatus, HouseMode
 import requests
 import logging
+import config
 
 
 class EedomusBoxInterface(BoxInterface):
@@ -14,7 +15,7 @@ class EedomusBoxInterface(BoxInterface):
 
     def read_status(self) -> BoxStatus:
         try:
-            result = requests.get('http://10.10.10.29/script/?exec=info_display.php').json()
+            result = requests.get(config.HOME_AUTOMATION_BOX_URL).json()
 
             status = BoxStatus(is_valid=True,
                                lights_on=result["lights_on"],
@@ -31,7 +32,7 @@ class EedomusBoxInterface(BoxInterface):
             api_mode = self.__house_mode_to_str.get(mode, None)
 
             if api_mode is not None:
-                url = f"http://10.10.10.29/script/?exec=info_display.php&set_mode={api_mode}"
+                url = f"{config.HOME_AUTOMATION_BOX_URL}&set_mode={api_mode}"
                 requests.get(url)
         except Exception as err:
             logging.error(f"Failed to set the mode to '{api_mode}' on the home automation box: {err}")
