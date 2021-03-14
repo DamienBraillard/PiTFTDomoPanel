@@ -1,6 +1,8 @@
 import pygame
+import sys
 import locale
 import logging
+import logging.config
 from typing import Optional
 import config
 from screen import Screen
@@ -24,7 +26,7 @@ class Frontend:
             locale.setlocale(locale.LC_ALL, config.LOCALE)
 
         # Configure the logging
-        self.__configure_logging()
+        logging.config.dictConfig(config.LOGGING_CONFIG)
 
         # Setup the screen management & home automation box communication
         self.__tft_manager = TftManager()
@@ -35,21 +37,18 @@ class Frontend:
                                                      communicator=self.__communicator)
         self.__screen.activate(None)
 
-    @staticmethod
-    def __configure_logging():
-        """ Initialize the logging infrastructure """
-        logging.basicConfig(level=logging.DEBUG)
-
     def run(self):
         """ Executes the PyGame main loop """
 
         is_running = True
         while is_running:
-            time_delta = self.__clock.tick(60) / 1000.0
+            time_delta = self.__clock.tick(5) / 1000.0
 
             # Enable/Disable the screen
-            if self.__tft_manager.update():
-                # Start the communicator when the screen goes ON, and stop it when the screen goes OFF
+            tft_state_changed = self.__tft_manager.update()
+
+            # Start the communicator when the screen goes ON, and stop it when the screen goes OFF
+            if tft_state_changed:
                 if self.__tft_manager.is_on:
                     self.__communicator.start()
                 else:

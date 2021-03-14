@@ -51,12 +51,13 @@ class TftManager:
 
             # Toggle the screen ON or OFF if the state changed
             if has_changed:
+                LOGGER.info(f"Screen state changed to {'ON' if new_is_on else 'OFF'}")
                 self.set_screen(self.is_on)
 
             # Done !
             return has_changed
         except Exception as err:
-            logging.error(f"Failed to set the TFT on/off: {err}")
+            LOGGER.error(f"Failed to set the TFT on/off: {err}")
             return False
 
     def set_screen(self, enabled: bool):

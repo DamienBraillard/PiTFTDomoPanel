@@ -5,6 +5,9 @@ from typing import Union, List
 import dataclasses
 import logging
 
+LOGGER = logging.getLogger(__name__)
+
+
 class HouseMode(enum.Enum):
     AWAY = "away"
     PRESENT = "present"
@@ -54,7 +57,7 @@ class Communicator:
 
     def set_house_mode(self, mode: HouseMode):
         """ Sets the house mode on the home automation box """
-        logging.debug(f"Setting house mode to {mode}")
+        LOGGER.debug(f"Setting house mode to {mode}")
         with self.__lock:
             self.__mode_to_set = mode
         self.__loop_event.set()
@@ -62,7 +65,7 @@ class Communicator:
     def refresh(self):
         """ Refreshes the status of the home automation box """
 
-        logging.debug('Refreshing home automation box values...')
+        LOGGER.debug('Refreshing home automation box values...')
         new_status = self.__box.read_status()
         with self.__lock:
             self.__current_status = new_status
@@ -70,7 +73,7 @@ class Communicator:
     def start(self):
         """ Starts the home automation box background management """
 
-        logging.info("Starting the home automation box background management")
+        LOGGER.info("Starting the home automation box background management")
 
         with self.__lock:
             self.__exit_requested = False
@@ -81,7 +84,7 @@ class Communicator:
     def stop(self):
         """ Stops the home automation box background management """
 
-        logging.info("Stopping the home automation box background management")
+        LOGGER.info("Stopping the home automation box background management")
 
         with self.__lock:
             self.__exit_requested = True
@@ -108,7 +111,7 @@ class Communicator:
                     self.__mode_to_set = None
 
                 if set_house_mode is not None:
-                    logging.info(f"Calling home automation box to set house mode to {set_house_mode}")
+                    LOGGER.info(f"Calling home automation box to set house mode to {set_house_mode}")
                     self.__box.write_house_mode(set_house_mode)
                     next_refresh = -5
 
@@ -122,4 +125,4 @@ class Communicator:
                     self.refresh()
                     next_refresh = 15
             except Exception as err:
-                logging.error(f"Error while processing home automation box communications: {err}")
+                LOGGER.error(f"Error while processing home automation box communications: {err}")

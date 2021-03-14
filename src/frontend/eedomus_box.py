@@ -3,6 +3,8 @@ import requests
 import logging
 import config
 
+LOGGER = logging.getLogger(__name__)
+
 
 class EedomusBoxInterface(BoxInterface):
     def __init__(self):
@@ -24,7 +26,7 @@ class EedomusBoxInterface(BoxInterface):
                                outside_temperature=result["outside_temperature"])
             return status
         except Exception as err:
-            logging.error(f"Failed to read the status from the home automation box: {err}")
+            LOGGER.error(f"Failed to read the status from the home automation box: {err}")
             return BoxStatus(is_valid=False, lights_on=[], doors_opened=[], house_mode=None, outside_temperature=None)
 
     def write_house_mode(self, mode: HouseMode):
@@ -35,5 +37,5 @@ class EedomusBoxInterface(BoxInterface):
                 url = f"{config.HOME_AUTOMATION_BOX_URL}&set_mode={api_mode}"
                 requests.get(url)
         except Exception as err:
-            logging.error(f"Failed to set the mode to '{api_mode}' on the home automation box: {err}")
+            LOGGER.error(f"Failed to set the mode to '{api_mode}' on the home automation box: {err}")
 
