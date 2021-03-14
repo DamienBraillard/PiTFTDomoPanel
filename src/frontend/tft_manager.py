@@ -24,7 +24,6 @@ class TftManager:
         LOGGER.debug(f"Using X Display '{config.SCREEN_DISPLAY}' and {config.SCREEN_TIMEOUT}s off timeout for screen.")
 
         self.__is_on: Optional[bool] = None
-        self.update()
 
     @property
     def is_on(self) -> Optional[bool]:
@@ -44,8 +43,7 @@ class TftManager:
             if config.MOCK_PINS:
                 new_is_on = True
             else:
-                pir_inactive_time = 0 if self.__pir.inactive_time is None else self.__pir.inactive_time
-                new_is_on = pir_inactive_time < config.SCREEN_TIMEOUT
+                new_is_on = self.__pir.inactive_time is None or self.__pir.inactive_time < config.SCREEN_TIMEOUT
 
             # Update the members
             has_changed = new_is_on != self.__is_on

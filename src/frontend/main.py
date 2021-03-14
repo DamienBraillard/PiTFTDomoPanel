@@ -29,7 +29,6 @@ class Frontend:
         # Setup the screen management & home automation box communication
         self.__tft_manager = TftManager()
         self.__communicator = Communicator(EedomusBoxInterface())
-        self.__communicator.refresh()
 
         # Setup the initial screen
         self.__screen: Optional[Screen] = MainScreen(surface=self.__window_surface,
