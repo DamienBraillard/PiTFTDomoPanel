@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 class TftManager:
     def __init__(self):
-        if config.MOCK_PINS:
+        if config.DEBUG_MODE:
             LOGGER.warning("Using mocked GPIO pins")
             Device.pin_factory = MockFactory()
 
@@ -24,11 +24,17 @@ class TftManager:
         LOGGER.debug(f"Using X Display '{config.SCREEN_DISPLAY}' and {config.SCREEN_TIMEOUT}s off timeout for screen.")
 
         self.__is_on: Optional[bool] = None
+        self.__forced_is_on: Optional[bool] = None
 
     @property
     def is_on(self) -> Optional[bool]:
         """ Returns True if the TFT screen is currently ON; otherwise, False """
         return self.__is_on
+
+    def set_forced_mode(self, is_on: Optional[bool]):
+        """ For debug purposes this allows to force the status of the TFT on or off """
+        LOGGER.debug(f"Forced TFT mode set to {is_on}")
+        self.__forced_is_on = is_on
 
     def update(self) -> bool:
         """
@@ -39,11 +45,15 @@ class TftManager:
 
         try:
             # determine whether the TFT must be ON/OFF
-            new_is_on = True
-            if config.MOCK_PINS:
-                new_is_on = True
+            tft_inactive_time = 0
+            if not config.DEBUG_MODE:
+                tft_inactive_time = self.__pir.inactive_time
+                LOGGER.debug(f"TFT inactive time = {tft_inactive_time} (Screen timeout = {config.SCREEN_TIMEOUT})")
+
+            if self.__forced_is_on is not None:
+                new_is_on = self.__forced_is_on
             else:
-                new_is_on = self.__pir.inactive_time is None or self.__pir.inactive_time < config.SCREEN_TIMEOUT
+                new_is_on = tft_inactive_time is None or tft_inactive_time < config.SCREEN_TIMEOUT
 
             # Update the members
             has_changed = new_is_on != self.__is_on
@@ -51,7 +61,7 @@ class TftManager:
 
             # Toggle the screen ON or OFF if the state changed
             if has_changed:
-                LOGGER.info(f"Screen state changed to {'ON' if new_is_on else 'OFF'}")
+                LOGGER.info(f"Screen state changed to {self.__is_on}")
                 self.set_screen(self.is_on)
 
             # Done !
@@ -72,7 +82,8 @@ class TftManager:
                 self.__backlight.on()
 
                 # Execute xset to set the TFT on
-                subprocess.call(f"xset -display {config.SCREEN_DISPLAY} -dpms", shell=True)
+                if not config.DEBUG_MODE:
+                    subprocess.call(f"xset -display {config.SCREEN_DISPLAY} -dpms", shell=True)
             else:
                 LOGGER.debug("Disabling display")
 
@@ -80,7 +91,8 @@ class TftManager:
                 self.__backlight.off()
 
                 # Execute xset to set the TFT off
-                subprocess.call(f"xset -display {config.SCREEN_DISPLAY} dpms force off", shell=True)
+                if not config.DEBUG_MODE:
+                    subprocess.call(f"xset -display {config.SCREEN_DISPLAY} dpms force off", shell=True)
 
         except Exception as err:
             if enabled:

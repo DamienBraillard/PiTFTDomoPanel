@@ -56,7 +56,18 @@ class Frontend:
                 if event.type == pygame.QUIT:
                     is_running = False
                     break
-                elif self.__screen is not None:
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        is_running = False
+                        break
+                    elif event.key == pygame.K_a:
+                        self.__tft_manager.set_forced_mode(None)
+                    elif event.key == pygame.K_e:
+                        self.__tft_manager.set_forced_mode(True)
+                    elif event.key == pygame.K_d:
+                        self.__tft_manager.set_forced_mode(False)
+
+                if self.__screen is not None:
                     self.__screen.handle_event(event)
 
             # Handles screen

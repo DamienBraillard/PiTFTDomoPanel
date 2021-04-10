@@ -1,9 +1,11 @@
 import sys
 
+# Debug mode
+DEBUG_MODE = False
+
 # GPIO configuration
 PIN_PIR = 4
 PIN_BACKLIGHT = 18
-MOCK_PINS = True
 
 # Screen configuration
 SCREEN_TIMEOUT = 30
@@ -48,7 +50,7 @@ LOGGING_CONFIG = {
     'loggers': {
         '': {
             'handlers': ['default', 'rotating_to_file'],
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'propagate': True
         }
     }
