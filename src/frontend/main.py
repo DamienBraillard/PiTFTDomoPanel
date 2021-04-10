@@ -25,9 +25,6 @@ class Frontend:
         if config.LOCALE != "":
             locale.setlocale(locale.LC_ALL, config.LOCALE)
 
-        # Configure the logging
-        logging.config.dictConfig(config.LOGGING_CONFIG)
-
         # Setup the screen management & home automation box communication
         self.__tft_manager = TftManager()
         self.__communicator = Communicator(EedomusBoxInterface())
@@ -79,5 +76,12 @@ class Frontend:
 
 
 if __name__ == "__main__":
-    frontend = Frontend()
-    frontend.run()
+    try:
+        # Configure the logging
+        logging.config.dictConfig(config.LOGGING_CONFIG)
+
+        # Run the frontend
+        frontend = Frontend()
+        frontend.run()
+    except Exception:
+        logging.exception(f"Fatal error occurred. The application has crashed !")
