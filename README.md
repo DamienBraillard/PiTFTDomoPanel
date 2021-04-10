@@ -76,7 +76,7 @@ dtparam=spi=on
 dtparam=i2c_arm=on
 ```
 
-Then enable the overly for the PiTFT display by adding the following lines at the end of the file.
+Then enable the overlay for the PiTFT display by adding the following lines at the end of the file.
 The first line sets the communication speed to 32Mhz, reduce to 16Mhz if your screen behaves strangly. It also sets the refresh speed to 25 frames per seconds which is enough in our case.
 The second line performs a screen rotation of 270° then adapts the touch screen so that it matches the display. It maches the layout of the TFT in the box created for the project but feel free to tweak this.
 ```
@@ -116,14 +116,13 @@ Reboot your Raspberry Pi and enjoy the boot messages:
 
 You should see the boot screen upon reboot and end up with a prompt once the boot has completed.
 
-## Installation and configuration of the X11 server and the web browser
-Now that we have the TFT with it's framebuffer working, we can attack installing and setting up X11.
+## Installation and configuration of the X11 server
+Now that we have the TFT with it's framebuffer working, we can attack installing and setting up the application.
 
 We will use the following software:
 * X11: will be responsible for the graphical environment.
 * matchbox: a minimal lightweight window manager.
 * nodm: a minimal window manager
-* midori: a small webkit based browser
 * xset: a X tool that can be used to tweak stuff like the screen saver
 * unclutter: a X tool that allows to hide the mouse cursor.
 
@@ -131,7 +130,7 @@ We will use the following software:
 
 Install the basic x11 packages with the matchbox windows manager a browser and the nodm lightweight desktop manager.
 ```
-#> sudo apt install x11-xserver-utils xinit matchbox midori nodm
+#> sudo apt install x11-xserver-utils xinit matchbox nodm unclutter
 ```
 
 Create a new file **/usr/share/X11/xorg.conf.d/99-pitft.conf**:
@@ -156,7 +155,24 @@ sudo mv /usr/share/X11/xorg.conf.d/99-fbturbo.conf ~
 ```
 You are free to delete it.
 
-## Setup web page auto-start at boot
+## Install the frontend Python application
+The application will be installed in the home directory of the user `pi`.
+
+### Install the application files
+
+First, create a new directory for the program and copy the python application:
+```
+#> mkdir ~/domo-panel
+```
+
+Copy the files from the `frontend` git folder in `~/domo-panel`
+
+Create the python virtual environment:
+```
+#>sudo apt install -y python3-venv libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0
+#>python3 -m venv ~/domo-panel//venv
+#>~/domo-panel/venv/bin/pip3 install -r ~/domo-panel//requirements.txt
+```
 
 ### Setup nodm display manager
 
@@ -177,11 +193,10 @@ Next step will tell the system what should be done when the graphical environmen
 starts. This is the place where the browser will be started.
 
 
-Create the file **/home/pi/.xsession**. Beware, do not forget to replace "[YOUR_URL_TO_DISPLAY]"
-with the URL that must be displayed on the screen.
+Create the file **/home/pi/.xsession** and open it using nano
 
 ```
-#> nano /home/pi/.xsession
+#> nano ~/.xsession
 ```
 
 And enter the following content:
@@ -200,14 +215,13 @@ unclutter -idle 0 &
 # Run the window manager !
 matchbox-window-manager -use_titlebar no &
 
-# Starts the web browser with the desired URL
-midori -e Fullscreen -a [YOUR_URL_TO_DISPLAY]
-
+# Starts the application
+~/domo-panel/venv/bin/python ~/domo-panel/main.py
 ```
 
 Then change the permissions of the file to **700**:
 ```
-#> chmod 700 /home/pi/.xsession
+#> chmod 700 /.xsession
 ```
 
 ### Enable boot to the graphical environment
