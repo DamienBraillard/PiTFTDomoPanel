@@ -9,6 +9,10 @@ MOCK_PINS = True
 SCREEN_TIMEOUT = 30
 SCREEN_DISPLAY = ":0"
 
+# Data refresh interval
+NORMAL_REFRESH_INTERVAL = 5
+AFTER_ACTION_FAST_REFRESH_DURATION = 10
+
 # Home automation box configuration
 HOME_AUTOMATION_BOX_URL = "http://10.10.10.29/script/?exec=info_display.php"
 

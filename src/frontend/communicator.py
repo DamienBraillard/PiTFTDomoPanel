@@ -1,3 +1,4 @@
+import config
 import threading
 import abc
 import enum
@@ -37,11 +38,10 @@ class Communicator:
     def __init__(self, box: BoxInterface):
         self.__box = box
 
-        self.__thread = threading.Thread(target=self.__thread_main)
-        self.__thread.daemon = True
+        self.__thread = None
         self.__loop_event = threading.Event()
-        self.__mode_to_set = None
         self.__exit_requested = False
+        self.__mode_to_set = None
         self.__lock = threading.Lock()
         self.__current_status = BoxStatus(is_valid=False,
                                           lights_on=[],
@@ -79,6 +79,8 @@ class Communicator:
             self.__exit_requested = False
 
         self.refresh()
+        self.__thread = threading.Thread(target=self.__thread_main)
+        self.__thread.daemon = True
         self.__thread.start()
 
     def stop(self):
@@ -93,36 +95,35 @@ class Communicator:
 
     def __thread_main(self):
         """ Implements the main loop of the background management thread """
-        next_refresh = 0
+        fast_refresh_counter = 0
         self.__loop_event.set()
 
         while True:
             try:
                 # Wait for the loop event and reset it if required
-                if self.__loop_event.wait(1):
+                wait_time = 1 if fast_refresh_counter > 0 else config.NORMAL_REFRESH_INTERVAL
+                LOGGER.debug(f"Next refresh in {wait_time} seconds (fast refresh count = {fast_refresh_counter})")
+                if self.__loop_event.wait(wait_time):
                     self.__loop_event.clear()
 
+                # Decrement the refresh counter
+                if fast_refresh_counter > 0:
+                    fast_refresh_counter -= 1
+
                 # check exit condition and set mode requests
-                set_house_mode = None
+                local_mode_to_set = None
                 with self.__lock:
                     if self.__exit_requested:
                         return
-                    set_house_mode = self.__mode_to_set
+                    local_mode_to_set = self.__mode_to_set
                     self.__mode_to_set = None
 
-                if set_house_mode is not None:
-                    LOGGER.info(f"Calling home automation box to set house mode to {set_house_mode}")
-                    self.__box.write_house_mode(set_house_mode)
-                    next_refresh = -5
+                if local_mode_to_set is not None:
+                    LOGGER.info(f"Calling home automation box to set house mode to {local_mode_to_set}")
+                    self.__box.write_house_mode(local_mode_to_set)
+                    fast_refresh_counter = config.AFTER_ACTION_FAST_REFRESH_DURATION
 
-                if next_refresh > 0:
-                    next_refresh -= 1
-                elif next_refresh < 0:
-                    self.refresh()
-                    next_refresh += 1
-
-                if next_refresh == 0:
-                    self.refresh()
-                    next_refresh = 15
+                # Refresh
+                self.refresh()
             except Exception as err:
                 LOGGER.error(f"Error while processing home automation box communications: {err}")
