@@ -39,7 +39,7 @@ class Frontend:
 
         is_running = True
         while is_running:
-            time_delta = self.__clock.tick(5) / 1000.0
+            time_delta = self.__clock.tick(30) / 1000.0
 
             # Enable/Disable the screen
             tft_state_changed = self.__tft_manager.update()
